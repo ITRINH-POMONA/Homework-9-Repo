@@ -270,6 +270,4 @@ public class ProxyTester {
         assertNotNull(results);
         assertTrue(results.isEmpty());
     }
-
-
 }
