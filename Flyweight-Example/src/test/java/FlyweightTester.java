@@ -82,4 +82,29 @@ public class FlyweightTester {
         assertEquals(before + 2, CharacterPropertiesFactory.getPoolSize());
     }
 
+    // Test cases for Styled Character, using variable props from previous tests
+    private final StyledCharacter sc = new StyledCharacter('X', props);
+
+    @Test
+    void constructorStoresValueAndProperties() {
+        assertEquals('X', sc.getValue());
+        assertSame(props, sc.getProperties());
+    }
+
+    @Test
+    void getValueReturnsCharacter() {
+        assertEquals('X', sc.getValue());
+    }
+
+    @Test
+    void getPropertiesReturnsSharedFlyweight() {
+        StyledCharacter other = new StyledCharacter('Y', props);
+        assertSame(sc.getProperties(), other.getProperties());
+    }
+
+    @Test
+    void toStringShowsCharacterAndProperties() {
+        assertEquals("X [Arial, 12, Red]", sc.toString());
+    }
+
 }
