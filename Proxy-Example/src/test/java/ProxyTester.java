@@ -53,7 +53,6 @@ public class ProxyTester {
     }
 
     // SongServiceProxy Test Cases
-
     // quick stand-in for actual server, no sleep calls for faster testing + counts how often it is called
     private static class CountingService implements SongService {
         final List<Song> songs;
@@ -91,6 +90,7 @@ public class ProxyTester {
     private Song loveOfMyLife;
     private Song imagine;
     private CountingService server;
+    private CountingService server2;
     private SongServiceProxy proxy;
 
     @BeforeEach
@@ -99,6 +99,7 @@ public class ProxyTester {
         loveOfMyLife = new Song(2, "Love of My Life", "Queen", "A Night at the Opera", 219);
         imagine = new Song(3, "Imagine", "John Lennon", "Imagine", 183);
         server = new CountingService(bohemian, loveOfMyLife, imagine);
+        server2 = new CountingService(bohemian, loveOfMyLife, imagine);
         proxy = new SongServiceProxy(server);
     }
 
@@ -111,7 +112,6 @@ public class ProxyTester {
     }
 
     // searchByID test cases
-
     @Test
     void searchByIdDelegatesToServerOnCacheMiss() {
         Song result = proxy.searchById(1);
@@ -145,7 +145,6 @@ public class ProxyTester {
     }
 
     // searchByTitle test cases
-
     @Test
     void searchByTitleDelegatesToServerOnCacheMiss() {
         List<Song> results = proxy.searchByTitle("Imagine");
@@ -190,7 +189,6 @@ public class ProxyTester {
     }
 
     // searchByAlbum test cases
-
     @Test
     void searchByAlbumDelegatesToServerOnCacheMiss() {
         List<Song> results = proxy.searchByAlbum("A Night at the Opera");
@@ -230,5 +228,48 @@ public class ProxyTester {
         assertSame(loveOfMyLife, proxy.searchById(2));
         assertEquals(0, server.idCalls);
     }
-    
+
+    // SongServiceImpl test cases
+    @Test
+    void constructorLoadsAllSongsIntoDatabase() {
+        assertSame(bohemian, server2.searchById(1));
+        assertSame(loveOfMyLife, server2.searchById(2));
+        assertSame(imagine, server2.searchById(3));
+    }
+
+    // searchById unit test
+    @Test
+    void searchByIdReturnsNullWhenNotFound() {
+        assertNull(server2.searchById(99));
+    }
+
+    // searchByTitle unit tests
+    @Test
+    void searchByTitleReturnsAllSongsWithSameTitle() {
+        Song duplicateTitle = new Song(4, "Imagine", "Some Cover Band", "Covers", 200);
+        SongServiceImpl s = new SongServiceImpl(Arrays.asList(imagine, duplicateTitle));
+
+        List<Song> results = s.searchByTitle("Imagine");
+
+        assertEquals(2, results.size());
+        assertTrue(results.contains(imagine));
+        assertTrue(results.contains(duplicateTitle));
+    }
+
+    @Test
+    void searchByTitleReturnsEmptyListWhenNotFound() {
+        List<Song> results = server2.searchByTitle("No Such Song");
+        assertNotNull(results);
+        assertTrue(results.isEmpty());
+    }
+
+    // searchByAlbum unit test
+    @Test
+    void searchByAlbumReturnsEmptyListWhenNotFound() {
+        List<Song> results = server2.searchByAlbum("No Such Album");
+        assertNotNull(results);
+        assertTrue(results.isEmpty());
+    }
+
+
 }
